@@ -44,95 +44,77 @@ In this project, we will use some fundamental concepts and techniques from linea
 
 **Matrix algebra** is an essential tool in many areas of science and engineering. A matrix is a rectangular array of numbers or symbols, and matrix algebra involves operations such as addition, subtraction, multiplication, and inversion of matrices. In this project, we will work with a matrix of facial images, where each column of the matrix represents a downsampled grayscale image of size 32x32 pixels.
 
-**Correlation analysis** is a statistical technique used to measure the relationship between two or more variables. In this project, we will compute a correlation matrix between the first 100 images in the matrix X, where each element of the matrix represents the dot product (correlation) between two images.
+**Correlation analysis** is a statistical technique used to measure the relationship between two or more variables. In statistics, correlation refers to the measure of association or the strength of the relationship between two variables. Correlation can take on a value between -1 and 1, where -1 represents a perfect negative correlation, 0 represents no correlation, and 1 represents a perfect positive correlation.
+
+A positive correlation means that as the value of one variable increases, the value of the other variable also tends to increase. For example, the height and weight of individuals have a positive correlation, which means that taller people tend to weigh more than shorter people.
+
+A negative correlation means that as the value of one variable increases, the value of the other variable tends to decrease. For example, the number of hours spent studying and the number of errors made on a test may have a negative correlation, which means that as the number of hours spent studying increases, the number of errors made on the test decreases.
+
+A zero correlation means that there is no association between the two variables. For example, the shoe size and the favorite color of individuals are not correlated, which means that there is no relationship between them.
+
+In this project, we will compute a correlation matrix between the first 100 images in the matrix X, where each element of the matrix represents the dot product (correlation) between two images.
 
 **Eigendecomposition** is a technique used to decompose a matrix into its eigenvectors and eigenvalues. In this project, we will use eigendecomposition to compute the first six eigenvectors of the matrix Y, where Y is the product of the matrix X and its transpose.
 
-**SVD** is a more general decomposition method that can be applied to any matrix, unlike eigendecomposition, which is only applicable to square matrices. In this project, we will use SVD to compute the first six principal component directions of the matrix X.
+**PCA (Principal Component Analysis)** is a statistical technique used to identify patterns in multivariate data. In this project, we will use PCA to analyze the structure of the matrix X and to identify the most significant features that capture the variability in the data.
 
-**PCA** is a statistical technique used to identify patterns in multivariate data. In this project, we will use PCA to analyze the structure of the matrix X and to identify the most significant features that capture the variability in the data.
+PCA is a commonly used statistical technique for dimensionality reduction. It aims to find the directions of maximal variance in a dataset and projects the data onto these directions to obtain a lower-dimensional representation of the data. The directions found by PCA are called principal components, and they are obtained by eigendecomposing the covariance matrix of the data.
+
+**SVD (Singular Value Decomposition)** is a more general decomposition method that can be applied to any matrix, unlike eigendecomposition, which is only applicable to square matrices. In this project, we will use SVD to compute the first six principal component directions of the matrix X.
+
+SVD is a matrix factorization technique that decomposes a matrix M (m*n) into three matrices: U, Σ, and V* (_in the code, these matricies have respectively been called U, S, and Vt_). The matrix Σ is diagonal and contains the singular values (in decreasing order) of the original matrix, which correspond to the square roots of the eigenvalues of the covariance matrix of the data. The matrix U contains the left singular vectors, and the matrix V* contains the right singular vectors.
+
+It is important to note that any time a matrix A is multiplied by another matrix B, only two primary things can occur: B will _stretch_ and _rotate_ A. Hence, the three matricies SVD splits a matrix M into simply rotate M (V*), stretch M (Σ), and rotate M (U).
+
+This concept can be visualized in figure 1 below. If we have a 2D disk (of a real sqaure matrix M), rotation first occurs, then stretching M will create an elipse with major and minor axes σ1 and σ2, and then we rotate again and find ourselves in a new coordiante system. We can say that u1 and u2 are unit orthonormal vectors known as principal axes along σ1 and σ2 and σ1 and σ2 are singular values. Thus, u1 and u2 determine the direction in which the stretching occurs while the singular valeus determine the magnitude of this stretch (eg. σ1u1).
+
+![image](https://user-images.githubusercontent.com/116219100/232977674-cfd2a2f3-18ae-41e9-93cf-9585034cc857.png)
+*Figure 1: Visualization of the 3 SVD matrices U, Σ, and V*
+
+In the context of PCA, the principal components can be obtained from the right singular vectors of the data matrix. This is because the right singular vectors are the eigenvectors of the covariance matrix of the data. Therefore, the right singular vectors are often called the PCA modes.
+
+However, the left singular vectors of the data matrix can also be useful in some applications, such as in image compression. In this case, the left singular vectors are called the SVD modes. The SVD modes and the PCA modes are related, but they are not exactly the same thing, as the SVD modes are not guaranteed to be orthogonal, while the PCA modes are always orthogonal.
 
 ### Sec. III. Algorithm Implementation and Development
 
-The implemenation began by studying the data given and it quickly became clear that a model function including cosine would make sense:
-
-![image](https://user-images.githubusercontent.com/116219100/231102445-480b4510-7659-4146-a764-f623350de300.png)
-*Figure 1: Plot of data points X and Y*
-
-Once the model function was down and the number of parameters was determined, a conventional approach was taken to find the 'optimal' parameters that would yield minimum error through least-sqaures error. First, a helper function, **LSE** (least-squares error), which would calculate the least-squares error given 4 parameters as an array_like object, **c**, the given input data set, **x**, and the given output data set, **y**.
+Initally, the image data had to be collected and stored into a matrix called X so that the data could be manipulated. This was done using the following lines of code:
 
 ```
-def LSEfit(c, x, y):
-    E = np.sqrt(np.sum((c[0]*np.cos(c[1]*x)+c[2]*x+c[3]-y)**2)/n)
-    return E
+results = loadmat('yalefaces.mat')
+
+X=results['X']
 ```
 
-Then, optimization was applied using the SciPy library's optimize module which was imported as opt:
+**results** is a Python dictionary object that contains keys and values. One of the keys in results is 'X', which corresponds to the variable containing the data matrix we are interested in. Therefore, we use results['X'] to extract the data matrix and assign it to the variable X.
+
+Then, a 100x100 correlation matrix C was created between the dataset's first 100 images using Numpy's corrcoef method:
 
 ```
-# set the initial guess for the parameters
-c0 = np.array([3, 1*np.pi/4, 2/3, 32])
-
-# perform optimization
-res = opt.minimize(LSEfit, c0, args=(X, Y), method='Nelder-Mead')
-
-# get the optimized parameters
-c = res.x
-```
-As previously mentioned, the initial guess will vary the results since this is a nonlinear model with an unknown number of solutions. The initial guess used was the best I could find after trial and error. Optimization was done using the **LSEFit** function mentioned above and the Nelder-Mead method. I used this method because it is useful for optimizing functions that are not differentiable or whose derivatives are difficult to compute, however, do note that this method is a popular choice for optimization problems with a small number of variables, but can become inefficient in high-dimensional spaces or if the function being optimized is highly nonlinear or has multiple local minima.
-
-After the optimized parameters were found, the minimum error (the furthest down the optimization algorithm could go) was found by passing these optimized parameters through the **LSEFit** function. The results will be discussed in **section IV.**.
-
-
-In the next part of the project, the previously found parameters were studied more deeeply. Two of the four parameters were fixed at their optimal value while the other two were swept from 0 to 30 and a 2D loss (error) landscape was generated. Consider the case where A and B were the fixed parameters and C and D were swept across:
-
-```
-# FIX A B
-# Initialize error grid
-error_gridAB = np.zeros((len(C_range), len(D_range)))
-
-# Loop through C and D ranges and compute error for each combination
-for i, C in enumerate(C_range):
-    for j, D in enumerate(D_range):
-        # Compute error for fixed A and B and swept C and D
-        error = compute_error(A_fixed, B_fixed, C, D, X, Y)
-        # Store error in error grid
-        error_gridAB[i, j] = error
-
-# Generate x and y meshes from the ranges of C and D
-C_mesh, D_mesh = np.meshgrid(C_range, D_range)
-
-# Create a new figure and axis
-fig, ax = plt.subplots()
-
-# Plot the error grid as a pcolor map
-pcm = ax.pcolormesh(C_mesh, D_mesh, error_gridAB, cmap='viridis', shading='auto')
-
-# Add a colorbar to the plot
-plt.colorbar(pcm).set_label('Error', fontweight='bold')
+m = 100
+Xm = X[:, 0:m]
+C = np.corrcoef(Xm.T)
 ```
 
-Note that color meshes are particularly useful in visualizing 2D arrays or grids (as can be seen in **section IV.**, hence why they were used. The error was stored in a error grid to be plotted against the meshes generated from the swept ranges. 
+**np.corrcoef** uses dot product to calculate the correlation between the columns of the input matrix. Specifically, np.corrcoef first centers the data (subtracts the mean from each column), then calculates the covariance matrix by taking the _dot product_ of the centered matrix with its transpose, and finally normalizes the covariance matrix by dividing each element by the product of the standard deviations of the two corresponding variables. This normalized covariance matrix is equivalent to the correlation matrix.
 
-The above process was repeated for all six combinations of two fixed and two swept parameters.
+The reason Xm.T (transpose of Xm) was passed in as a parameter rather than Xm itself is because, this way, it calculates the correlation coefficients between the columns of Xm (i.e., between the individual images) rather than between the rows. Moreover, the np.corrcoef() function expects the input data to have rows as variables and columns as observations. By transposing Xm, we get the desired format for inputting the data to np.corrcoef().
 
-
-Next, the first 20 data points were used as training data to determine the coeficients to fit a line, parabola and 19th degree polynomial to the data. Then, using these coeficients, the prediction accuracy of the model was tested against the last 10 data points using the least-squares error equation:
+After plotting the correlation matrix using **pcolor**, we sought to find out which pair of images from our minimized dataset were most highly correlated and which pair were most uncorrelated:
 
 ```
-# Fit a parabola to the data
-parabola_coeffs = np.polyfit(X[:20], Y[:20], deg=2)
-parabola_predictions_train = np.polyval(parabola_coeffs, X[:20])
-parabola_error_train = np.sqrt(np.sum((Y[:20] - parabola_predictions_train) ** 2)/20)
+max_corr = np.max((C - np.eye(m)))
+print('Max Correlation:', max_corr)
+max_indices = np.where((C - np.eye(m)) == max_corr)
+print("Most highly correlated pair:", max_indices[0][0] + 1, "and", max_indices[1][0] + 1)
+print()
 
-# Compute errors on test data
-parabola_predictions_test = np.polyval(parabola_coeffs, X[-10:])
-parabola_error_test = np.sqrt(np.sum((Y[-10:] - parabola_predictions_test) ** 2)/10)
+min_corr = np.min((C - np.eye(m)))
+print('Min Correlation:', min_corr)
+min_indices = np.where((C - np.eye(m)) == min_corr)
+print("Most highly uncorrelated pair:", min_indices[0][0] + 1, "and", min_indices[1][0] + 1)
 ```
 
-Since all three of these fits are polynomials, the optimal coefficients were found using Numpy library's **polyfit** method. An initial guess was not required for this method since polynomials have a known number of solutions and therefore it iteratively minimizes the sum of squares of the residuals between the data and the polynomial fit until it determines the best-fit coefficients.
-
-Finally, the same procedure was done except the training data became the first 10 and last 10 data points and then this model was fit to the 10 held out middle points (test data). 
+The maxmimum correlation was calculated by simply using np.max() (which returns the maximum value in an n-dimensional Numpy array) after subtracting np.eye(m) from our 100x100 matrix C. **np.eye(m)** creates a 2D identity matrix of size m x m, where m is the number of columns (100) in the matrix Xm. By subtracting np.eye(m) from C, the diagonal elements of the correlation matrix C are set to zero. This is because the diagonal elements of C correspond to the correlation between the same image with itself, _which is always 1_. By setting these elements to zero, we ignore the correlation between an image and itself and only consider the correlation between different images. Then, we find the indicies of the max value(s) using **np.where()** which returns the indicies at which the condition _C - np.eye(m)) == max_corr_ is met.
 
 ### Sec. IV. Computational Results
 
