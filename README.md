@@ -117,6 +117,73 @@ print("Most highly uncorrelated pair:", min_indices[0][0] + 1, "and", min_indice
 The maxmimum correlation was calculated by simply using np.max() (which returns the maximum value in an n-dimensional Numpy array) after subtracting np.eye(m) from our 100x100 matrix C. **np.eye(m)** creates a 2D identity matrix of size m x m, where m is the number of columns (100) in the matrix Xm. By subtracting np.eye(m) from C, the diagonal elements of the correlation matrix C are set to zero. This is because the diagonal elements of C correspond to the correlation between the same image with itself, _which is always 1_. By setting these elements to zero, we ignore the correlation between an image and itself and only consider the correlation between different images. Then, we find the indicies of the max value(s) using **np.where()** which returns the indicies at which the condition _C - np.eye(m)) == max_corr_ is met. We can expect to get at least two pairs with the same max correlation since correlation matricies are symmetric and thus we may get the pair (4,5) and (5,4). When printing, the +1 ensures that we are naming the image correctly since Python arrays are 0-indexed while our data is not.
 
 The minimum correlation and its indicies are then discovered in the exact same way except using np.min rather than np.max.
+
+Next, the same process was executed once more except with a 10x10 correlation matrix of a randomly selected list of images: [1, 313, 512, 5, 2400, 113, 1024, 87, 314, 2005] (Just for clarification, the first image is labeled as one, not zero like Python might do).
+
+```
+image_set = [1, 313, 512, 5, 2400, 113, 1024, 87, 314, 2005]
+m2 = len(image_set)
+Xc = np.zeros((X.shape[0], m2))
+for i, image in enumerate(image_set):
+  Xc[:, i] = X[:, image - 1]
+
+C2 = np.corrcoef(Xc.T)
+```
+
+First a list of the intended images was created and stored in image_set. Next, the new subset of X, now called Xc (previously called Xm) was created with the same number of rows as X and with m2 (10) columns creating a (1024, 10) matrix of zeros. Then, Xc was populated by column with each column corresponding to the image number - 1 (due to indexing). A new correlation matrix C2 was created using **np.corrcoef(Xc.T)**. The most and least correlated images were then found using the same technqiue that was previously descibed.
+
+The next task in the project was to create the matrix $Y = XX^T$ (where $X^T$ is the transpose of X) and find the first six eigenvectors with the largest magnitude eigenvalue. This was done using the aforementioned **eigendecomposition**:
+
+```
+# Calculate Y
+Y = np.matmul(X,X.T)
+
+# Find the eigenvalues and eigenvectors of Y
+eigvals, eigvecs = np.linalg.eigh(Y)
+
+# Sort in descending order by largest magnitude eigenvalue
+idx = eigvals.argsort()[::-1]   
+eigVals_sorted = eigvals[idx]
+eigvecs_sorted = eigvecs[:,idx]
+
+# Grab the first six eigenvectors with largest magnitude eigenvalue
+top_six_eigvecs = eigvecs[:, :6]
+```
+
+**np.linalg.eigh(Y)** performs the eigendecomposition and returns the eigenvalues and eigenvectors of the matrix Y. Then, argsort() was used to sort the eigenvalues indicies in ascending order and the slicing technique of [::-1] reverses the vector to return one in descending order. The eigenvector columns were then sorted based on this order of having the largest magnitude eigenvalue. The first six were then sliced out and stored in _top_six_eigvecs_.
+
+Then, SVD was applied on the matrix X and the first six principal component directions were extracted:
+
+```
+# SVD decomposition of matrix X
+U, S, Vt = np.linalg.svd(X)
+
+# First six principal component directions
+PC_directions = U[:, :6]
+```
+
+**np.linalg.svd(X)** performs the SVD on matrix X and returns the previously described matrices U, Σ, and V* as U, S, and Vt_ respectively). The first six principal component directions can then be sliced out of the U matrix.
+
+Next, we compared the first eigenvector v1 with the first SVD mode u1 and compute the norm of difference of their absolute values:
+
+```
+v1 = top_six_eigvecs[0]
+u1 = PC_directions[0, :]
+print('First eigenvector v1 from Y:', v1)
+print('First SVD mode u1 from X:', u1)
+
+# Compute norm of difference of absolute values
+diff_norm = np.linalg.norm(np.abs(v1) - np.abs(u1))
+
+print()
+print("Norm of difference:", diff_norm)
+```
+
+The norm of difference was found using **np.linalg.norm(np.abs(v1) - np.abs(u1))** where np.abs() returns the absolute value of its paramter.
+
+Finally, the percentage of variance captured by each of the first 6 SVD modes was computed and plotted:
+
+
 ### Sec. IV. Computational Results
 
 In the first part, it can be seen from the plot below that the resulting fit was not very accurate but still pretty close to emulating the flucuations of the given data points. The **minimum error** was determined to be around **1.593** while the 4 optimal parameters found were **A=2.17**, **B=0.91**, **C=0.73**, **D=31.45**.
