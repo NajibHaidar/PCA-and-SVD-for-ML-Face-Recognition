@@ -183,20 +183,48 @@ The norm of difference was found using **np.linalg.norm(np.abs(v1) - np.abs(u1))
 
 Finally, the percentage of variance captured by each of the first 6 SVD modes was computed and plotted:
 
+```
+# Compute the total variance of the data
+total_var = np.sum(S ** 2)
+
+# Compute the percentage of variance captured by each of the first 6 SVD modes
+variance_percentage = [(S[i] ** 2 / total_var) * 100 for i in range(6)]
+```
+
+The matrix S contains the singular values of X, which we use to compute the variance captured by each of the first 6 SVD modes.
+
+The total variance of the data can be computed by summing the squares of all singular values (i.e., total_var = np.sum(S ** 2)). The percentage of variance captured by each of the first 6 SVD modes can then be computed as follows:
+
+- Square each singular value up to the 5th index (i.e., S[i] ** 2 for i in the range 0 to 5).
+- Divide each squared singular value by the total variance (total_var).
+- Multiply the result by 100 to get the percentage of variance captured by each mode (i.e., (S[i] ** 2 / total_var) * 100 for i in the range 0 to 5).
 
 ### Sec. IV. Computational Results
 
-In the first part, it can be seen from the plot below that the resulting fit was not very accurate but still pretty close to emulating the flucuations of the given data points. The **minimum error** was determined to be around **1.593** while the 4 optimal parameters found were **A=2.17**, **B=0.91**, **C=0.73**, **D=31.45**.
-
-![image](https://user-images.githubusercontent.com/116219100/231102068-249d81e0-9f32-4f40-bfec-1a8ee8a93291.png)
-*Figure 2: Fitting f(x) on X and Y using least-squares fit*
+In the first part, the 100x100 correlation matrix of the first 100 images produced expected results. We can see in figure 2 that the normalized color map ranges from -1 to 1 where -1 means highly uncorrelated (negative correlation) and 1 means perfectly correlated. The map is symmetic as expected since the 100 images were comapred with each other and so the diagonal shows perfectly correlated images sicne they are being compared to themselves at this axis.  
 
 
-In the next part, the 2D loss (error) landscape's color maps yieled interesting results and provided insight to the affect certain parameters have on the function's number of minima.
+![image](https://user-images.githubusercontent.com/116219100/233007554-7e4d067c-0d35-43b7-8102-754d21b90913.png)
+*Figure 2: 100x100 correlation matrix of the first 100 images*
 
-![image](https://user-images.githubusercontent.com/116219100/231120449-630141c5-62f8-4375-89e4-be8d496d7aa1.png)
-*Figure 3: Error Landscape, fix AB and sweep CD*
+We can see that some image pairs are highly positivly correlated (dark red) whilst others are highly negatively correlated (dark blue). We also have a great number of images that are not correlated at all (white).
 
+![image](https://user-images.githubusercontent.com/116219100/233008197-921d118d-17eb-489a-9a01-8a85adb56170.png)
+*Figure 3: Highly correlated and highly uncorrelated image pairs in first 100 images of X*
+
+Figure 3 demonstrates the results obtained for the correlation pairing. Image 6 and image 63 had the highest positive correlation at a near perfect value of 97%. This makes sense as first of all the two images seem to be of the same person and the lighting conditions seem very similar in both images. I believe these were the two biggest driving factors in the algorithm concluding this correlation. We can see that the bright (yellow) spots are almost perfectly common for both images in the same spots. This definitely aids the algorithm in registering that the faces have the same structure and hence, are highly positvely correlated. 
+
+Image 16 and image 82 had the highest negative correlation value at nearly -78%. The features that made the images 6 and 63 similar simply rarely exist here. We can see that where image 16 is lit up, image 82 dimmed down and the opposite is true as well. Therefore, the algorithm recognizes this opposing realation between the images and thus classifies them as negatively correlated images.
+
+![image](https://user-images.githubusercontent.com/116219100/233012509-75725516-0f8a-4300-8133-223a2ffb6caf.png)
+*Figure 4: 10x10 correlation matrix of the 10 images in random image set*
+
+The analysis of figure 4 is simialr to that of figure 2. We can see the expected symmetry of the correlation matrix as well as the variation in correlation between different pairs of images.
+
+![image](https://user-images.githubusercontent.com/116219100/233013092-842f776c-97da-4887-ac43-313e37dbd69d.png)
+*Figure 5: Highly correlated and highly uncorrelated image pairs in random set of 10*
+
+Figure 5 shows that from the random set, image 2400 and image 113 were the most highly positively correlated images with a correlation of 97%. However, after seeing the images, one could argue that these images may not be of the same person and so why have they been assigned near perfect correlation? It comes back to the shadows formed and what the algorithm can recognize as correlated. It sees that the entire left hemisphere of both images is almost completely dark and thus must 'look' the same. Additionally, both images have bright spots on their noses and a similar shape is formed there too. Note that in figure 3 the correlation was very high due to light being present and the face structure distributing the light similarly in both images, thus the algorithm recognized that these 2 images were also the same. Images 2400 and 113 have been paired due to lack of light not allowing structural face differences to appear: the complete opposite reasoning. Images 5 and 1024 are seen as highly uncorrelated with a correlation coefficient of -70%. Firstly, where image 5 is bright, image 1024 is dark thus indicating a negative correlation.
 
 ### Sec. V. Summary and Conclusions
 
