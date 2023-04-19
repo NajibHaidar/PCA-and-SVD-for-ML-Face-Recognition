@@ -205,26 +205,50 @@ In the first part, the 100x100 correlation matrix of the first 100 images produc
 
 
 ![image](https://user-images.githubusercontent.com/116219100/233007554-7e4d067c-0d35-43b7-8102-754d21b90913.png)
-*Figure 2: 100x100 correlation matrix of the first 100 images*
+*Figure 2: 100x100 Correlation Matrix of the First 100 Images*
 
 We can see that some image pairs are highly positivly correlated (dark red) whilst others are highly negatively correlated (dark blue). We also have a great number of images that are not correlated at all (white).
 
 ![image](https://user-images.githubusercontent.com/116219100/233008197-921d118d-17eb-489a-9a01-8a85adb56170.png)
-*Figure 3: Highly correlated and highly uncorrelated image pairs in first 100 images of X*
+*Figure 3: Highly Correlated and Highly Uncorrelated Image Pairs in First 100 Images of X*
 
 Figure 3 demonstrates the results obtained for the correlation pairing. Image 6 and image 63 had the highest positive correlation at a near perfect value of 97%. This makes sense as first of all the two images seem to be of the same person and the lighting conditions seem very similar in both images. I believe these were the two biggest driving factors in the algorithm concluding this correlation. We can see that the bright (yellow) spots are almost perfectly common for both images in the same spots. This definitely aids the algorithm in registering that the faces have the same structure and hence, are highly positvely correlated. 
 
 Image 16 and image 82 had the highest negative correlation value at nearly -78%. The features that made the images 6 and 63 similar simply rarely exist here. We can see that where image 16 is lit up, image 82 dimmed down and the opposite is true as well. Therefore, the algorithm recognizes this opposing realation between the images and thus classifies them as negatively correlated images.
 
 ![image](https://user-images.githubusercontent.com/116219100/233012509-75725516-0f8a-4300-8133-223a2ffb6caf.png)
-*Figure 4: 10x10 correlation matrix of the 10 images in random image set*
+*Figure 4: 10x10 Correlation Matrix of the 10 Images in Random Image Set*
 
 The analysis of figure 4 is simialr to that of figure 2. We can see the expected symmetry of the correlation matrix as well as the variation in correlation between different pairs of images.
 
 ![image](https://user-images.githubusercontent.com/116219100/233013092-842f776c-97da-4887-ac43-313e37dbd69d.png)
-*Figure 5: Highly correlated and highly uncorrelated image pairs in random set of 10*
+*Figure 5: Highly Correlated and Highly Uncorrelated Image Pairs in Random Set of 10*
 
-Figure 5 shows that from the random set, image 2400 and image 113 were the most highly positively correlated images with a correlation of 97%. However, after seeing the images, one could argue that these images may not be of the same person and so why have they been assigned near perfect correlation? It comes back to the shadows formed and what the algorithm can recognize as correlated. It sees that the entire left hemisphere of both images is almost completely dark and thus must 'look' the same. Additionally, both images have bright spots on their noses and a similar shape is formed there too. Note that in figure 3 the correlation was very high due to light being present and the face structure distributing the light similarly in both images, thus the algorithm recognized that these 2 images were also the same. Images 2400 and 113 have been paired due to lack of light not allowing structural face differences to appear: the complete opposite reasoning. Images 5 and 1024 are seen as highly uncorrelated with a correlation coefficient of -70%. Firstly, where image 5 is bright, image 1024 is dark thus indicating a negative correlation.
+Figure 5 shows that from the random set, image 2400 and image 113 were the most highly positively correlated images with a correlation of 97%. However, after seeing the images, one could argue that these images may not be of the same person and so why have they been assigned near perfect correlation? It comes back to the shadows formed and what the algorithm can recognize as correlated. It sees that the entire left hemisphere of both images is almost completely dark and thus must 'look' the same. Additionally, both images have bright spots on their noses and a similar shape is formed there too. Note that in figure 3 the correlation was very high due to light being present and the face structure distributing the light similarly in both images, thus the algorithm recognized that these 2 images were also the same. Images 2400 and 113 have been paired due to lack of light not allowing structural face differences to appear: the complete opposite reasoning. Images 5 and 1024 are seen as highly uncorrelated with a correlation coefficient of -70%. Firstly, where image 5 is bright, image 1024 is dark thus indicating a negative correlation. Also, while image 5 may have some light on the right side along with image 1024, the shadows formed indicated different face structures and thus more negative correlation.
+
+![image](https://user-images.githubusercontent.com/116219100/233017767-2824bf0d-5456-4a25-8feb-aa6c2b8724bb.png)
+*Figure 6: Top Six Eigenvectors*
+
+After multiplying X by its transpose, these were the top 6 eigenvectors (by highest eigenvalue magnitude) found. They cannot be entirely displayed since it has 1024 rows and 6 columns. 
+
+![image](https://user-images.githubusercontent.com/116219100/233018471-d0912749-4734-4908-a848-d67b55533345.png)
+*Figure 7: First 6 Principal Component Directions*
+
+Similary to the top six eigenvectors, the dimensions for the first 6 principal components were (1024, 6) and so they could not be fully displayed. 
+
+![image](https://user-images.githubusercontent.com/116219100/233019354-f8a48f50-8052-49a0-838b-24084ceb62c4.png)
+*Figure 8: Calculating Norm of Difference*
+
+In figure 8, we can see that the norm of difference between v1 and u1 came out to be just less than 0.093. Specifically, it means that the two vectors are relatively close to each other, but not identical. The norm of difference between two vectors is a measure of their dissimilarity, and a value of 0 would indicate that they are identical, while larger values indicate greater dissimilarity.
+
+![image](https://user-images.githubusercontent.com/116219100/233020612-292d7420-8755-4d3c-9e0a-936648b98939.png)
+*Figure 9: Percentage of Variance Captured by the First 6 SVD Modes*
+
+In reference to figure 9, it is expected that the first SVD mode has the most variance. In fact, one of the main advantages of SVD is that it orders the modes in descending order of variance. This means that the first SVD mode captures the most important patterns or features in the data, and each subsequent mode captures progressively smaller and more complex patterns. This will be further explored in figure 10. We must notice the deep drop off as well as it goes from 72.9% in mode 1 to 15.3% in mode 2 immediately. This just shows the importance of the first mode and how musch of the important features it captures.
+
+![image](https://user-images.githubusercontent.com/116219100/233021694-e350bda2-d114-4aa7-9d22-d55661e5c9a5.png)
+*Figure 10: First 6 SVD Modes*
+
 
 ### Sec. V. Summary and Conclusions
 
